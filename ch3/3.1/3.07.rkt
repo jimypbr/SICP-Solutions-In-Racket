@@ -1,0 +1,38 @@
+#lang racket
+
+(define (make-account balance password)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (check-password p)
+    (eq? password p))
+  (define (dispatch p m)
+    (if (check-password p)
+        (cond ((eq? m 'withdraw) withdraw)
+              ((eq? m 'deposit) deposit)
+              (else (error "unknown request: MAKE-ACCOUNT"
+                           m)))
+        (lambda (_) "Incorrect password")))
+  dispatch)
+
+(define (make-joint account password1 password2)
+  (define (check-password p)
+    (eq? password2 p))
+  (define (dispatch p m)
+    (if (check-password p)
+        (account password1 m)
+        (lambda (_) "Incorrect password"))
+    )
+  dispatch)
+
+(module+ test
+  (require rackunit)
+  (define peter-acc (make-account 200 'open-sesame))
+  (define paul-acc (make-joint peter-acc 'open-sesame 'rosebud))
+  (check-equal? ((peter-acc 'open-sesame 'withdraw) 100) 100)
+  (check-equal? ((paul-acc 'rosebud 'withdraw) 50) 50))
