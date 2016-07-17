@@ -19,3 +19,4 @@
        (lambda () (set-signal! output new-value)))))
   (add-action! o1 or-action-procedure)
   (add-action! o2 or-action-procedure)
+  'ok)
